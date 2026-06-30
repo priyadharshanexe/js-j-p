@@ -1,30 +1,28 @@
 const http = require("http");
-const server = require("./server");
+const { spawn } = require("child_process");
 
-function testServer() {
-    http.get("http://localhost:3000/", (res) => {
+const server = spawn("node", ["server.js"]);
+
+setTimeout(() => {
+    http.get("http://localhost:3000", (res) => {
         let data = "";
 
-        res.on("data", chunk => {
-            data += chunk;
-        });
+        res.on("data", chunk => data += chunk);
 
         res.on("end", () => {
             if (res.statusCode === 200 && data === "Server is running") {
-                console.log("✅ Test Passed");
-                server.close();
+                console.log("TEST PASSED");
+                server.kill();
                 process.exit(0);
             } else {
-                console.log("❌ Test Failed");
-                server.close();
+                console.log("TEST FAILED");
+                server.kill();
                 process.exit(1);
             }
         });
     }).on("error", () => {
-        console.log("❌ Server Connection Failed");
-        server.close();
+        console.log("SERVER NOT RUNNING");
+        server.kill();
         process.exit(1);
     });
-}
-
-setTimeout(testServer, 1000);
+}, 2000);
