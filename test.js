@@ -1,44 +1,24 @@
 const http = require("http");
-const { spawn } = require("child_process");
 
-// Start the server
-const server = spawn("node", ["server.js"]);
+http.get("http://localhost:3000", (res) => {
+    let data = "";
 
-server.stdout.on("data", (data) => {
-    console.log(data.toString());
-});
-
-server.stderr.on("data", (data) => {
-    console.error(data.toString());
-});
-
-// Wait for the server to start
-setTimeout(() => {
-    http.get("http://localhost:3000", (res) => {
-        let body = "";
-
-        res.on("data", (chunk) => {
-            body += chunk;
-        });
-
-        res.on("end", () => {
-            if (
-                res.statusCode === 200 &&
-                body.includes("Node.js Web Server is Running")
-            ) {
-                console.log("✅ TEST PASSED");
-                server.kill();
-                process.exit(0);
-            } else {
-                console.log("❌ TEST FAILED");
-                server.kill();
-                process.exit(1);
-            }
-        });
-    }).on("error", (err) => {
-        console.log("❌ SERVER NOT RUNNING");
-        console.log(err.message);
-        server.kill();
-        process.exit(1);
+    res.on("data", chunk => {
+        data += chunk;
     });
-}, 2000);
+
+    res.on("end", () => {
+        if (res.statusCode === 200 && data === "Node.js Server is Running") {
+            console.log("TEST PASSED");
+            process.exit(0);
+        } else {
+            console.log("TEST FAILED");
+            process.exit(1);
+        }
+    });
+
+}).on("error", (err) => {
+    console.log("SERVER NOT RUNNING");
+    console.log(err.message);
+    process.exit(1);
+});
